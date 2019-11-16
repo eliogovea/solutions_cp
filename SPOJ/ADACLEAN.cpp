@@ -1,0 +1,87 @@
+#include <bits/stdc++.h>
+ 
+using namespace std;
+ 
+const int MAXS = 2 * 100000 + 1;
+ 
+int length[MAXS + 1];
+map <char, int> next[MAXS + 1];
+int suffixLink[MAXS + 1];
+ 
+int size;
+int last;
+ 
+int getNew(int _length) {
+	int now = size++;
+	length[now] = _length;
+	next[now] = map <char, int> ();
+	suffixLink[now] = -1;
+	return now;
+}
+ 
+int getClone(int from, int _length) {
+	int now = size++;
+	length[now] = _length;
+	next[now] = next[from];
+	suffixLink[now] = suffixLink[from];
+	return now;
+}
+ 
+void init() {
+	size = 0;
+	last = getNew(0);
+}
+ 
+void add(int c) {
+	int p = last;
+	int cur = getNew(length[p] + 1);
+	while (p != -1 && next[p].find(c) == next[p].end()) {
+		next[p][c] = cur;
+		p = suffixLink[p];
+	}
+	if (p == -1) {
+		suffixLink[cur] = 0;
+	} else {
+		int q = next[p][c];
+		if (length[p] + 1 == length[q]) {
+			suffixLink[cur] = q;
+		} else {
+			int clone = getClone(q, length[p] + 1);
+			suffixLink[q] = clone;
+			suffixLink[cur] = clone;
+			while (p != -1 && next[p][c] == q) {
+				next[p][c] = clone;
+				p = suffixLink[p];
+			}
+		}
+	}
+	last = cur;
+}
+ 
+int t;
+int n, k;
+string s;
+ 
+void solve() {
+	cin >> t;
+	while (t--) {
+		cin >> n >> k >> s;
+		init();
+		for (int i = 0; i < n; i++) {
+			add(s[i]);
+		}
+		int ans = 0;
+		for (int i = 1; i < size; i++) {
+			if (length[suffixLink[i]] + 1 <= k && k <= length[i]) {
+				ans++;
+			}
+		}
+		cout << ans << "\n";
+	}
+}
+ 
+int main() {
+	ios::sync_with_stdio(false);
+	cin.tie(0);
+	solve();
+}
